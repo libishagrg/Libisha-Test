@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Random Users</title>
+  <style>
+    .sButton {
+      background-color: pink;
+      border: grey solid 3px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: gray;
+      width: 200px;
+      height: 50px;
+      font-size: 20px;
+    }
+    .search {
+      font-family: Arial, Helvetica, sans-serif;
+      border: grey solid 3px;
+      width: 300px;
+      height: 30px;
+    }
+    .head {
+      font-family: Arial, Helvetica, sans-serif;
+      color: palevioletred;
+      font-size: 50px;
+      text-align: center;
+    }
+    .user-card {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 3px solid black;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      width: 700px;
+      height: 300px;
+    }
+    .user-card img {
+      border-radius: 5px;
+      width: 300px;
+      height: 300px;
+      object-fit: cover;
+      margin-right: 15px;
+    }
+    .user-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .user-info .header {
+      font-size: 30px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .user-info .uid {
+      font-size: 18px;
+      color: gray;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ui container" style="margin-top: 20px;">
+    <h1 class="head">Random Users</h1>
+    <button onclick="fetchTenUsers()" class="sButton">Fetch 10 Users</button>
+    <div style="margin-top: 20px;">
+      <input type="text" class="search" id="searchBar" placeholder="Search Name" />
+      <button class="sButton" onclick="searchUser()">Search</button>
+    </div>
+    <div id="allUsers" style="margin-top: 20px;"></div>
+  </div>
+
+  <script>
+    let users = [];
+
+    window.onload = function() {
+      const savedUsers = localStorage.getItem("users");
+      if (savedUsers) {
+        users = JSON.parse(savedUsers);
+        users.forEach(user => displayUser(user));
+      }
+    };
+
+    function saveToLocalStorage() {
+      localStorage.setItem("users", JSON.stringify(users));
+    }
+
+    function fetchTenUsers() {
+      fetch("https://randomuser.me/api/?results=10")
+        .then(response => response.json())
+        .then(data => {
+          users = data.results;
+          saveToLocalStorage();
+          document.getElementById("allUsers").innerHTML = ""; 
+          users.forEach(user => displayUser(user));
+        });
+    }
+
+    function displayUser(user) {
+      const card = document.createElement("div");
+      card.className = "user-card";
+      card.innerHTML = `
+        <img src="${user.picture.large}" alt="User Image">
+        <div class="user-info">
+          <div class="header">${user.name.first} ${user.name.last}</div>
+          <div class="uid">UUID: ${user.login.uuid}</div>
+          <div class="meta">${user.location.city}, ${user.location.country}</div>
+        </div>`;
+      document.getElementById("allUsers").appendChild(card);
+    }
+
+    function searchUser() {
+      const searchValue = document.getElementById("searchBar").value.toLowerCase();
+      const allUsersContainer = document.getElementById("allUsers");
+      allUsersContainer.innerHTML = "";
+
+      const filteredUsers = users.filter(user =>
+        user.name.first.toLowerCase().includes(searchValue) ||
+        user.name.last.toLowerCase().includes(searchValue)
+      );
+
+      if (filteredUsers.length === 0) {
+        allUsersContainer.innerHTML = "<p>No users found.</p>";
+      } else {
+        filteredUsers.forEach(user => displayUser(user));
+      }
+    }
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</body>
+</html>
